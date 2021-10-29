@@ -1,0 +1,11 @@
+{
+    "employee": [
+        { "name": "Andres Green", "id": 4, "title": "COO", "manager_id": 2 },
+        { "name": "Barrett Glasauer", "id": 1, "title": "CTO", "manager_id": 2 },
+        { "name": "Chris Hancock", "id": 8, "title": "Engineering Lead", "manager_id": 1 },
+        { "name": "Julian Early", "id": 3, "title": "Engineer", "manager_id": 8 },
+        { "name": "Michael Chen", "id": 2, "title": "CEO", "manager_id": null },
+        { "name": "Shrutika Dasgupta", "id": 22, "title": "Engineer", "manager_id": 8 },
+        { "name": "Ryan Miller", "id": 30, "title": "Operations Lead", "manager_id": 4 }
+    ]
+}
