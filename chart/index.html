@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name="viewport" content="initial-scale=1, width=device-width" />
+    <title>WanderJaunt - Chart</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src='https://unpkg.com/babel-standalone@6.26.0/babel.js'></script>
+    <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4.3.2/css/metro-all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" />
+
+</head>
+<body>
+    <div id="root"></div>
+    <script type='text/babel'>
+
+        /**
+         *  Dependencies Mapping
+         */ 
+        const UI = ReactBootstrap;
+
+        /**
+         * i18n
+         */
+        const i18n = {
+            title: 'WanderJaunt',
+            description: 'Chart challenge by ARodriguez',
+            menuTitle: 'Organization',
+            chartTitle: 'Employees',
+            descriptionTitle: 'About him',
+            noEmployee: 'Click an employee',
+            treeNoMessage: 'There\'s not data about employees',
+            errorResponse: 'Error response from server'
+        }
+
+        /**
+         *  Service requests
+         */
+        const getEmployees = () =>
+            fetch("http://localhost:3000/employee")
+                .then((res) =>
+                    res.status === 200 ?
+                    res.json() :
+                    Promise.reject(i18n.errorResponse))
+                .catch((error) => error)
+
+        /**
+         * Components
+         */
+        const DescriptionPanel = ({ employee }) =>
+            <UI.Container>
+                <h3>{i18n.descriptionTitle}</h3>
+                {employee != undefined? 
+                    <div>
+                        <h5 style={{ fontSize: 14 }}>{employee.name}</h5>
+                        <h6 style={{ fontSize: 13 }}>{employee.title}</h6>
+                        <p style={{ fontSize: 13 }}>{employee.description}</p>
+                    </div>
+                :
+                    <p>{i18n.noEmployee}</p>
+                }
+            </UI.Container>
+
+        const EmployeePanel = ({ openEmployee}) => { 
+            const [employees, setEmployees] = React.useState(undefined)
+
+            React.useEffect(() => {
+                getEmployees()
+                    .then((empResponse) => orderEmployees(empResponse))                
+                    .then((empResponse) => setEmployees(empResponse))                    
+                    .catch(()           => setEmployees(undefined))
+            },[])
+
+            const onClickEvent = function (event, employee) {
+                // Here you'll do whatever you want to happen when they click
+                openEmployee(employee)
+                // now this part stops the click from propagating
+                if (!event) var event = window.event;
+                event.cancelBubble = true;
+                if (event.stopPropagation) event.stopPropagation();
+
+            }
+
+            let DynamicJSONToTreeView = () =>
+                <UI.Col>
+                    <h3>{i18n.chartTitle}</h3>
+                    <ul data-role="treeview" >
+                        <JSONtoTreeView json={employees} openEmployee={onClickEvent}/>
+                    </ul>                    
+                </UI.Col>
+
+            return <DynamicJSONToTreeView />
+
+        }
+        const Navbar = () => 
+            <UI.Navbar bg="dark" variant="dark">
+                <UI.Container fluid>
+                    <UI.Navbar.Brand href="#">
+                        {`${i18n.title} - ${i18n.description}`}
+                    </UI.Navbar.Brand>
+                </UI.Container>
+            </UI.Navbar>
+
+        /**
+         * Utils
+         */
+        const JSONtoTreeView = ({ json, openEmployee }) => {
+            if(!json) return <li data-caption={i18n.treeNoMessage}></li>
+
+            const keys = Object.keys(json); 
+            return <React.Fragment>
+                {keys
+                    .sort(function (a, b) {
+                        var nameA = json[a].name.split(" ")[1].toUpperCase(); // ignore upper and lowercase
+                        var nameB = json[b].name.split(" ")[1].toUpperCase(); // ignore upper and lowercase
+                        if (nameA < nameB) {
+                            return -1;
+                        }
+                        if (nameA > nameB) {
+                            return 1;
+                        }
+
+                        // names must be equal
+                        return 0;
+                    })
+                    .map(key =>
+                    <li key={key}
+                        data-caption={`${json[key].title}: ${json[key].name}`}
+                        onClick={(e) => { openEmployee(e, json[key]) }}>
+                        {Object.keys(json[key].children).length > 0 ?
+                            <ul>
+                                <JSONtoTreeView json={json[key].children} openEmployee={openEmployee}/>
+                            </ul>
+                            : <React.Fragment></React.Fragment>
+                        }
+                    </li >
+                )}
+                </React.Fragment>
+        }
+
+        const excludeItemsInJson = (itemKey, json) =>
+            Object.keys(json)
+                .filter((key) => key !== itemKey.toString())
+                .reduce((obj, validKey) => ({ ...obj, [validKey]: json[validKey] }), {})
+
+        const addChildren = (child, parentKey, json) => ({
+            ...json,
+            [parentKey]: {
+                ...json[parentKey],
+                children: {
+                    ...json[parentKey].children,
+                    [child["id"]]: child
+                }
+            }
+        })
+        const recursiveOrder = (employee, mappedJSON) => {            
+            const keys    = Object.keys(mappedJSON)
+            let response  = null
+            let iterator = 0
+
+            // We validate if the parent id is in the row partners
+            if(keys.includes(employee.manager_id.toString())) {
+                const hijo = addChildren(employee, employee.manager_id, mappedJSON)
+                return hijo
+            }
+
+            while(!response && iterator < keys.length){
+                if(mappedJSON[keys[iterator]].children){
+                    response = recursiveOrder(employee, mappedJSON[keys[iterator]].children)
+                    if (response) return {
+                        ...mappedJSON,
+                        [keys[iterator]]: {
+                            ...mappedJSON[keys[iterator]],
+                            children: response
+                        },
+                    }
+                }
+                iterator += 1
+            }
+
+            // We wasn't find any match
+            return mappedJSON
+        }
+        const orderEmployees = (employees) => {
+           if(!employees) return {}
+
+            let mappedJSON = employees.reduce((mappedJSON, employee) => ({
+                ...mappedJSON,
+                [employee["id"]]: { ...employee, children: {} }
+            }), {})
+            
+            const orderedJSON = Object.values(mappedJSON).reduce((orderedJSON, employee) => {
+
+                return employee.manager_id !== null ?
+                recursiveOrder(orderedJSON[employee.id], excludeItemsInJson(employee.id, orderedJSON))
+                : orderedJSON
+            } ,mappedJSON)
+            return orderedJSON
+        }
+
+        /**
+         *  Base App
+         */
+        const WanderJauntApp = () => {
+            const [clickedEmployee, setClickedEmployee] = React.useState(null)
+            return (
+                <React.Fragment>
+                    <Navbar />
+                    <UI.Container>
+                        <UI.Row>
+                            <h1>{i18n.menuTitle}</h1>
+                        </UI.Row>
+                        <UI.Row>
+                            <UI.Col>
+                                <UI.Row>
+                                    <EmployeePanel openEmployee={setClickedEmployee}/>
+                                </UI.Row>
+                            </UI.Col>
+                            <UI.Col>
+                                <DescriptionPanel employee={clickedEmployee}/>
+                            </UI.Col>
+                        </UI.Row>
+                    </UI.Container>
+                </React.Fragment>
+            )
+        }
+        ReactDOM.render(<WanderJauntApp />, document.querySelector('#root'));
+    </script>
+    <script src="https://cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+    <script src="https://unpkg.com/react-bootstrap@next/dist/react-bootstrap.min.js" crossorigin></script>
+</body>
+</html>
