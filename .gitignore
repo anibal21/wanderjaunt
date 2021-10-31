@@ -1,4 +1,13 @@
-chart/node_modules
-chart/package-lock.json
+#vscode
+.vscode
 
+# git
 .DS_Store
+
+# JS
+node_modules
+package-lock.json
+
+# Python
+environment
+__pycache__
