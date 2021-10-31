@@ -1,0 +1,183 @@
+openapi: 3.0.1
+info:
+  title: CustomFields API
+  description: "Service for Custom Fields Management"
+  contact:
+    name: Aníbal Rodríguez from WanderJaunt
+    email: arodriguez@wanderjaunt.com
+  version: 1.0.1
+servers:
+  - url: http://custom-fields.wanderjaunt.com
+  - url: http://localhost:9600
+tags:
+  - name: session
+    description: Endpoints to authenticate    
+  - name: form
+    description: Endpoints to CRUD Forms
+  - name: input
+    description: Endpoints to CRUD Input Schemas
+paths:
+  /api/login:
+    post:
+      tags:
+        - session
+      summary: Endpoint to authenticate
+      responses:
+        200:
+          description: Successful Response
+        422:
+          description: Bad request
+        404:
+          description: Not found Request
+        500:
+          description: Internal Server Error
+  /api/form/:                
+    post:
+      tags:
+        - form
+      summary: Endpoint to create form.
+      responses:
+        200:
+          description: Successful Response
+        422:
+          description: Bad request
+        404:
+          description: Not found Request
+        500:
+          description: Internal Server Error
+    get:
+      tags:
+        - form
+      summary: Endpoint to list forms.
+      responses:
+        200:
+          description: Successful Response
+        422:
+          description: Bad request
+        404:
+          description: Not found Request
+        500:
+          description: Internal Server Error
+  /api/form/{id}:                
+    get:
+      tags:
+        - form
+      summary: Endpoint to get a form.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: form id      
+      responses:
+        200:
+          description: Successful Response
+        422:
+          description: Bad request
+        404:
+          description: Not found Request
+        500:
+          description: Internal Server Error
+    put:
+      tags:
+        - form
+      summary: Endpoint to update form.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: form id            
+      responses:
+        200:
+          description: Successful Response
+        422:
+          description: Bad request
+        404:
+          description: Not found Request
+        500:
+          description: Internal Server Error
+    delete:
+      tags:
+        - form
+      summary: Endpoint to delete form.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: form id          
+      responses:
+        200:
+          description: Successful Response
+        422:
+          description: Bad request
+        404:
+          description: Not found Request
+        500:
+          description: Internal Server Error
+  /api/form/data/{id}:                
+    post:
+      tags:
+        - form
+      summary: Endpoint to fill an instance of a form.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: form id      
+      responses:
+        200:
+          description: Successful Response
+        422:
+          description: Bad request
+        404:
+          description: Not found Request
+        500:
+          description: Internal Server Error   
+    put:
+      tags:
+        - form
+      summary: Endpoint to update an instance of a form.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: form id      
+      responses:
+        200:
+          description: Successful Response
+        422:
+          description: Bad request
+        404:
+          description: Not found Request
+        500:
+          description: Internal Server Error   
+  /api/input/:                
+    get:
+      tags:
+        - input
+      summary: Endpoint to list input schemas.
+      responses:
+        200:
+          description: Successful Response
+        422:
+          description: Bad request
+        404:
+          description: Not found Request
+        500:
+          description: Internal Server Error          
+components:
+  securitySchemes:
+    JWT_Token_Header:
+      type: apiKey
+      name: x-access-token
+      in: header
+
