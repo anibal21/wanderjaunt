@@ -1,5 +1,13 @@
+#vscode
+.vscode
+
+# git
+.DS_Store
+
+# JS
 node_modules
 package-lock.json
 
-env
-.DS_Store
+# Python
+environment
+__pycache__
